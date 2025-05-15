@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Token Encryption/Decryption Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .token {
+            word-break: break-all;
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .log {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>JWT Token Encryption/Decryption Test</h1>
+    <div id="result"></div>
+
+    <h2>Test Details:</h2>
+    <h3>Original Payload:</h3>
+    <pre id="original-payload"></pre>
+
+    <h3>Encrypted Token:</h3>
+    <div class="token" id="token-display"></div>
+
+    <h3>Decrypted Payload:</h3>
+    <pre id="payload-display"></pre>
+
+    <h3>Console Log:</h3>
+    <div class="log" id="console-log"></div>
+
+    <!-- Include our script.js file first -->
+    <script src="script.js"></script>
+
+    <script>
+        // Function to log to both console and our custom log div
+        function log(message, type = 'log') {
+            const logElement = document.getElementById('console-log');
+            const timestamp = new Date().toLocaleTimeString();
+
+            // Log to console
+            console[type](message);
+
+            // Log to our custom log div
+            const color = type === 'error' ? 'red' : (type === 'warn' ? 'orange' : 'white');
+            logElement.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span>\n`;
+        }
+
+        // Test payload
+        const testPayload = {
+            userId: 123,
+            username: "testuser",
+            role: "admin"
+        };
+
+        // Display the original payload
+        document.getElementById('original-payload').textContent = JSON.stringify(testPayload, null, 2);
+
+        try {
+            log("Starting JWT encryption/decryption test...");
+
+            // Check if jwtFunctions is available
+            if (!window.jwtFunctions) {
+                throw new Error("JWT functions not found. Make sure script.js is loaded correctly.");
+            }
+
+            // Access the encrypt and decrypt functions from the window object
+            const { encrypt, decrypt } = window.jwtFunctions;
+            log("Successfully loaded JWT functions");
+
+            // Encrypt the payload
+            const token = encrypt(testPayload);
+            log(`Encrypted Token: ${token}`);
+            document.getElementById('token-display').textContent = token;
+
+            // Decrypt the token
+            const decryptedPayload = decrypt(token);
+            log(`Decrypted Payload: ${JSON.stringify(decryptedPayload)}`);
+            document.getElementById('payload-display').textContent = JSON.stringify(decryptedPayload, null, 2);
+
+            // Check if the decryption was successful
+            const originalStr = JSON.stringify(testPayload);
+            const decryptedStr = JSON.stringify(decryptedPayload);
+
+            log(`Original (stringified): ${originalStr}`);
+            log(`Decrypted (stringified): ${decryptedStr}`);
+
+            const isSuccess = originalStr === decryptedStr;
+
+            if (isSuccess) {
+                log("Success! Encryption and decryption working correctly.");
+                document.getElementById('result').innerHTML = '<h2 style="color: green;">Success! Encryption and decryption working correctly.</h2>';
+            } else {
+                log("Failed: Decrypted payload doesn't match original", "error");
+                document.getElementById('result').innerHTML = '<h2 style="color: red;">Failed: Decrypted payload doesn\'t match original</h2>';
+            }
+        } catch (error) {
+            log(`Error: ${error.message}`, "error");
+            document.getElementById('result').innerHTML = `<h2 style="color: red;">Error: ${error.message}</h2>`;
+        }
+    </script>
+</body>
+</html>
